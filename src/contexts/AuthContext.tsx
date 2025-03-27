@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from "sonner";
 
-type UserRole = 'renter' | 'landlord' | 'admin' | null;
+export type UserRole = 'renter' | 'landlord' | 'admin' | null;
 
 interface User {
   id: string;
