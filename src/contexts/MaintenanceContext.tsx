@@ -27,7 +27,8 @@ export type RequestStatus =
   'bid_accepted' | 
   'scheduled' | 
   'completed' | 
-  'declined';
+  'declined' |
+  'rebid_requested';
 
 export interface MaintenanceRequest {
   id: string;
@@ -45,6 +46,11 @@ export interface MaintenanceRequest {
   acceptedBidId?: string;
   scheduledDate?: string;
   isConfirmed?: boolean;
+  completedDate?: string;
+  completedNotes?: string;
+  rebidRequired?: boolean;
+  rebidReason?: string;
+  rebidApproved?: boolean;
 }
 
 interface MaintenanceContextType {
@@ -57,6 +63,9 @@ interface MaintenanceContextType {
   getRequestById: (requestId: string) => MaintenanceRequest | undefined;
   getRequestsByRenterId: (renterId: string) => MaintenanceRequest[];
   getAllRequests: () => MaintenanceRequest[];
+  markRequestComplete: (requestId: string, notes?: string) => void;
+  requestRebid: (requestId: string, reason: string) => void;
+  approveRebid: (requestId: string, approved: boolean) => void;
 }
 
 // Mock property data
@@ -123,7 +132,8 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       'bid_accepted': 'A bid has been accepted',
       'scheduled': 'Maintenance has been scheduled',
       'completed': 'Request has been completed',
-      'declined': 'Request has been declined'
+      'declined': 'Request has been declined',
+      'rebid_requested': 'Rebid has been requested'
     };
 
     toast.info(statusMessages[status] || 'Request status updated');
@@ -191,6 +201,59 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  // New function to mark a request as complete
+  const markRequestComplete = (requestId: string, notes?: string) => {
+    setRequests(prev =>
+      prev.map(request =>
+        request.id === requestId
+          ? {
+              ...request,
+              status: 'completed',
+              completedDate: new Date().toISOString(),
+              completedNotes: notes || 'Work completed successfully.',
+              updatedAt: new Date().toISOString(),
+            }
+          : request
+      )
+    );
+
+    toast.success('Maintenance request marked as complete!');
+  };
+
+  // New function to request a rebid
+  const requestRebid = (requestId: string, reason: string) => {
+    setRequests(prev =>
+      prev.map(request =>
+        request.id === requestId
+          ? {
+              ...request,
+              rebidRequired: true,
+              rebidReason: reason,
+              updatedAt: new Date().toISOString(),
+            }
+          : request
+      )
+    );
+
+    toast.info('Rebid request submitted to landlord for approval.');
+  };
+
+  // New function for landlord to approve/decline rebid
+  const approveRebid = (requestId: string, approved: boolean) => {
+    setRequests(prev =>
+      prev.map(request =>
+        request.id === requestId
+          ? {
+              ...request,
+              rebidApproved: approved,
+              status: approved ? 'seeking_bids' : request.status,
+              updatedAt: new Date().toISOString(),
+            }
+          : request
+      )
+    );
+  };
+
   const getRequestById = (requestId: string) => {
     return requests.find(request => request.id === requestId);
   };
@@ -215,6 +278,9 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         getRequestById,
         getRequestsByRenterId,
         getAllRequests,
+        markRequestComplete,
+        requestRebid,
+        approveRebid,
       }}
     >
       {children}

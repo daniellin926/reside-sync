@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PortalLayout from '@/components/PortalLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -7,14 +7,25 @@ import { Button } from '@/components/ui/button';
 import { useMaintenance, RequestStatus } from '@/contexts/MaintenanceContext';
 import MaintenanceStatusBadge from '@/components/MaintenanceStatusBadge';
 import { format } from 'date-fns';
-import { ArrowLeft, CheckCircle, XCircle, CircleDollarSign } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  CheckCircle, 
+  XCircle, 
+  CircleDollarSign, 
+  AlertTriangle 
+} from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 const RequestDetail = () => {
   const { requestId } = useParams<{ requestId: string }>();
   const navigate = useNavigate();
-  const { getRequestById, updateRequestStatus, acceptBid } = useMaintenance();
+  const { 
+    getRequestById, 
+    updateRequestStatus, 
+    acceptBid, 
+    approveRebid 
+  } = useMaintenance();
   
   if (!requestId) {
     navigate('/landlord');
@@ -48,6 +59,16 @@ const RequestDetail = () => {
     updateRequestStatus(requestId, 'seeking_bids');
     toast.info('Request for additional bids sent');
   };
+
+  const handleApproveRebid = () => {
+    approveRebid(requestId, true);
+    toast.success('Rebid request approved');
+  };
+
+  const handleDeclineRebid = () => {
+    approveRebid(requestId, false);
+    toast.info('Rebid request declined');
+  };
   
   // Format dates for display
   const createdDate = format(new Date(request.createdAt), 'PPP');
@@ -68,6 +89,42 @@ const RequestDetail = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Button>
+        
+        {/* Show rebid notification if there's a pending rebid */}
+        {request.rebidRequired && !request.rebidApproved && (
+          <Card className="mb-6 border-yellow-400">
+            <CardHeader className="pb-2">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2" />
+                <CardTitle className="text-lg">Rebid Requested</CardTitle>
+              </div>
+              <CardDescription>
+                Service provider has requested a rebid for this maintenance request
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <p className="text-sm">{request.rebidReason}</p>
+            </CardContent>
+            <CardFooter className="pt-2">
+              <div className="flex gap-2 w-full">
+                <Button 
+                  variant="default" 
+                  className="flex-1"
+                  onClick={handleApproveRebid}
+                >
+                  Approve Rebid
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={handleDeclineRebid}
+                >
+                  Decline Rebid
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Request details */}

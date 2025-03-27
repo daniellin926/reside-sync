@@ -37,7 +37,7 @@ const PortalLayout: React.FC<PortalLayoutProps> = ({ children, title, className 
               className="flex items-center text-xl font-semibold hover:opacity-80 transition-opacity"
             >
               <Home className="w-5 h-5 mr-2" />
-              ResideSync
+              mAItenants
             </button>
           </div>
           <h1 className="text-xl font-medium">{title}</h1>
@@ -68,7 +68,7 @@ const PortalLayout: React.FC<PortalLayoutProps> = ({ children, title, className 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-4 text-center text-sm text-slate-500">
         <div className="container mx-auto">
-          <p>© 2023 ResideSync. All rights reserved.</p>
+          <p>© 2023 mAItenants. All rights reserved.</p>
         </div>
       </footer>
     </div>
